@@ -17,6 +17,10 @@ def sender_count(messages):
         sender_count[message["sender_name"]] = sender_count.get(message["sender_name"], 0) + 1
     return sender_count
 
+def get_chat_senders(messages):
+    senders = set([message.get("sender_name") for message in messages])
+    return senders
+
 def filter_by_date(date, messages):
     filter_date = datetime.strptime(date, "%d-%m-%Y")
     start_of_day = int(filter_date.replace(hour=0, minute=0, second=0).timestamp() * 1000)
@@ -32,6 +36,17 @@ def get_msg_count(messages, name="total"):
         return sc[name]
     else:
         return sum(msg_count for msg_count in sc.values())
+    
+def count_reels_shared(messages):
+    reels_shared = 0
+    senders = {sender : 0 for sender in get_chat_senders(messages)}
+    senders.pop("Meta AI")
+    for message in messages:
+        if "share" in message.keys():
+            reels_shared += 1
+            senders[message["sender_name"]] += 1
+    
+    return reels_shared, senders
     
 def individual_dm_data(id):
     data = defaultdict(int)
@@ -56,17 +71,14 @@ def individual_dm_data(id):
             if "messages" in data:
                 message_data.extend(data["messages"])
 
-        senders = set([message.get("sender_name") for message in message_data])
-
         timestamps = [message.get("timestamp_ms") for message in message_data]
         dates = [datetime.fromtimestamp(ts/1000).date().strftime("%d-%m-%Y") for ts in timestamps]
         most_active_date = statistics.mode(dates)
         date_counts = Counter(dates)
-    
-        data["senders"] = senders
+        count_reels_shared(message_data)
+        print(get_chat_senders(message_data))
+        data["senders"] = get_chat_senders(message_data)
         data["most_active_date"] = most_active_date
-        # data["total_msg_count"] = 
-        # data["msg_count_on_most_active_day"]
-        # print(sender_count(message_data))
-        print(get_msg_count(message_data))
+        data["total_msg_count"] = get_msg_count(message_data)
+        data["sender_count"] = sender_count(message_data)
 individual_dm_data("kiddie_dhreya")
