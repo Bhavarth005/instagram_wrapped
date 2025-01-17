@@ -76,9 +76,28 @@ def individual_dm_data(id):
         most_active_date = statistics.mode(dates)
         date_counts = Counter(dates)
         count_reels_shared(message_data)
+        total_reels_shared, reels_shared_senders = count_reels_shared(message_data)
         print(get_chat_senders(message_data))
+
         data["senders"] = get_chat_senders(message_data)
         data["most_active_date"] = most_active_date
         data["total_msg_count"] = get_msg_count(message_data)
         data["sender_count"] = sender_count(message_data)
-individual_dm_data("kiddie_dhreya")
+        data["total_reels_shared"] = total_reels_shared
+        data["reels_shared_members"] = reels_shared_senders
+
+def likes_data():
+    data = {}
+    liked_data = json.load(open("./your_instagram_activity/likes/liked_posts.json", "r"))
+    liked_data = liked_data["likes_media_likes"]
+    titles = [items["title"] for items in liked_data if 'title' in items]
+    count_titles = Counter(titles)
+    top_5_acc = list(sorted(count_titles.items(), key = lambda x: x[1],reverse=True))[:5]
+    
+    data["total_likes"] = len(liked_data)
+    data["top_5_acc"] = top_5_acc
+
+# def comments_data():
+
+# individual_dm_data("kiddie_dhreya")
+# likes_data()
